@@ -5,16 +5,64 @@ const connectDB = require('./config/database')
 const app = express();
 const User = require('./models/user');
 
-app.post('/signup', async (req, res)=> {
-    const userObj = {
-        fistName: "Salman",
-        lastName: "Farees",
-        emailId: "salmanfrs91@gmail.com",
-        password: "Eternal@123"
-    }
+app.use(express.json());
 
-    //Creating a new instance of user model.
-    const user = new User(userObj);
+app.get("/user", async(req, res) => {
+    const email = req.body.emailId;
+
+    try {
+        const user = await User.find({ emailId: email})
+        if(user.length == 0) {
+            res.status(400).send("User Not Found");
+        } else {
+            res.send(user);
+        }
+    } catch (err) {
+        res.status(400).send("Something went wrong" + err);
+    }
+});
+
+app.get("/userAll", async(req, res) => {
+    try {
+        const user = await User.find({})
+        if(user.length !== 0) {
+            res.send(user);
+        } else {
+            res.status(400).send("No data found");
+        }
+    } catch (err) {
+        res.status(400).send("Something went wrong: " +err);
+    }
+});
+
+app.get("/userOne", async (req, res) => {
+    const email = req.body.emailId
+
+    try {
+        const user = await User.findOne({emailId: email})
+        if(user.length !== 0)
+            res.send(user);
+        else
+            res.status(400).send("No data found");
+    } catch {
+        res.status(400).send("Something Went Wrong: " +err);
+    }
+});
+
+app.post('/signup', async (req, res)=> {
+
+    // const userObj = {
+    //     firstName:"Salman",
+    //     lastName: "Farees",
+    //     emailId: "salmanfrs91@gmail.com",
+    //     password: "Eternal@123"
+    // }
+
+    // //Creating a new instance of user model.
+    // const user = new User(userObj);
+
+    // console.log(req.body);
+    const user = new User(req.body);
 
     try {
         await user.save();
