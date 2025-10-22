@@ -73,6 +73,43 @@ app.post('/signup', async (req, res)=> {
 
 });
 
+app.delete("/deleteUser", async(req, res) => {
+
+    const userId = req.body.userId
+
+    try {
+        const user = await User.findByIdAndDelete({_id: userId})
+        res.send("User deleted Successfully");
+    } catch (err) {
+        res.status(400).send("Error deleting the user: " +err);
+    }
+});
+
+app.patch('/updateUser/:userId', async(req, res) => {
+    const userId = req.params.userId
+    const data =  req.body;
+    
+    try {
+        const ALLOWED_UPDATES = ["gender", "about", "photoUrl", "skills"]
+
+        const isUpdateAllowed = Object.keys(data).every((k) => 
+            ALLOWED_UPDATES.includes(k)
+        ); 
+        if(!isUpdateAllowed) {
+            throw new Error("Update not allowed")
+        }
+
+        if(data.skills?.length > 10) {
+            throw new Error("Skills should not exceed 10")
+        }
+        const user = await User.findByIdAndUpdate(userId, data, {returnDocument: "before", runValidators: true})
+        console.log(user);
+        res.send("data updated successfully");
+    } catch (err) {
+        res.status(400).send("Something went wrong: " + err.message);
+    }
+})
+
 connectDB()
     .then(() => {
         console.log("Database is connected");
